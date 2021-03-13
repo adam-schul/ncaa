@@ -11,12 +11,19 @@ with open('NCAATourneyCompactResults.csv', newline='') as f:
 # Sort the data into the more specific lists
 
 sum_prop = []
+avg_list = []
 
 limit = 15
 
-for p in range(1, 35):
-    limit = p
-    for i in range(1985, 2017):
+def truncate(n, decimals=0):
+    multiplier = 10 ** decimals
+    return int(n * multiplier) / multiplier
+
+for p in range(1, 35, 5):
+    low_limit = p
+    high_limit = p + 5
+    high_limt = high_limit - 1
+    for i in range(1985, 2008):
         # Create empty lists for data
         blowout = []
         nineteen = []
@@ -38,7 +45,7 @@ for p in range(1, 35):
             elif data[i][1] == '136' or data[i] == '137':
                 difference = int(data[i][3]) - int(nineteen[i][5])
                 # If it's a blowout, save the information to another list
-                if difference > limit:
+                if (difference >= low_limit) and (difference <= high_limit):
                     blowout.append([nineteen[i][0], difference, nineteen[i][2]])
                 else:
                     pass
@@ -70,5 +77,8 @@ for p in range(1, 35):
         glass = glass + sum_prop[i]
 
     avg = glass / len(sum_prop)
+    avg_list.append(avg)
 
-    print('Average proportion with limit ' + str(limit) + ': ' + str(avg))
+    print('Avg prop. of teams who won second game if won first game with a lead '
+          'between ' + str(low_limit) + ' and ' + str(high_limt) + ': ' + str(truncate((avg), 5)))
+
