@@ -1,8 +1,12 @@
-import numpy as np
-import matplotlib.pyplot as plt
+
 import sys
 import csv
-from matplotlib.pyplot import xkcd
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from pandas import DataFrame
+from PyQt5.QtWidgets import QApplication, QTableView
+from PyQt5.QtCore import QAbstractTableModel, Qt
 
 # Read the data from the csv file and put it into a variable called "data"
 with open('NCAATourneyCompactResults.csv', newline='') as f:
@@ -12,7 +16,7 @@ with open('NCAATourneyCompactResults.csv', newline='') as f:
 # Sort the data into the more specific lists
 
 sum_prop = []
-
+final = []
 
 def truncate(n, decimals=0):
     multiplier = 10 ** decimals
@@ -89,8 +93,45 @@ for man in range(1985, 2008):
         avg = glass / len(sum_prop)
         avg_list.append(avg)
 
+        final.append([yearOne, yearTwo, low_limit, high_lmt, truncate(avg, 5)])
 
         print('Avg prop. of teams who won second game if won first game with a lead '
               'between ' + str(low_limit) + ' and ' + str(high_lmt) + ': ' + str(truncate(avg, 5)))
 
     print('Standard deviation: ' + str(truncate(np.std(avg_list), 5)))
+
+
+df = DataFrame(final,columns=['Low Year', 'High Year', 'Low Limit', 'High Limit', 'Average'])
+
+
+class pandasModel(QAbstractTableModel):
+
+    def __init__(self, data):
+        QAbstractTableModel.__init__(self)
+        self._data = data
+
+    def rowCount(self, parent=None):
+        return self._data.shape[0]
+
+    def columnCount(self, parnet=None):
+        return self._data.shape[1]
+
+    def data(self, index, role=Qt.DisplayRole):
+        if index.isValid():
+            if role == Qt.DisplayRole:
+                return str(self._data.iloc[index.row(), index.column()])
+        return None
+
+    def headerData(self, col, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return self._data.columns[col]
+        return None
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    model = pandasModel(df)
+    view = QTableView()
+    view.setModel(model)
+    view.resize(800, 600)
+    view.show()
+    sys.exit(app.exec_())
